@@ -31,7 +31,7 @@ export function run(suiteName: string, fixtureName: string, testName: string, cb
     if (path.basename(fixture) !== fixtureName) {
         return
     }
-    if (process.env['LATEXWORKSHOP_SUITE'] && !process.env['LATEXWORKSHOP_SUITE'].split(',').includes(suiteName)) {
+    if (process.env['LATEXWORKSHOP_SUITE'] && !process.env['LATEXWORKSHOP_SUITE'].split(',').find(candidate => suiteName.includes(candidate))) {
         return
     }
     if (platforms && !platforms.includes(os.platform())) {
