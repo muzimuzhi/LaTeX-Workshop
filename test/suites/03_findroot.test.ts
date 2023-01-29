@@ -52,8 +52,8 @@ suite('Find root file test suite', () => {
         const doc = await vscode.workspace.openTextDocument(path.resolve(fixture, 'sub/s.tex'))
         await vscode.window.showTextDocument(doc)
         await lw.manager.findRoot()
-        assert.strictEqual(lw.manager.rootFile?.replaceAll(path.win32.sep, '/'), path.resolve(fixture, 'main.tex'))
-        assert.strictEqual(lw.manager.localRootFile?.replaceAll(path.win32.sep, '/'), path.resolve(fixture, 'sub/s.tex'))
+        assert.strictEqual(lw.manager.rootFile, path.resolve(fixture, 'main.tex').replaceAll(path.win32.sep, '/'))
+        assert.strictEqual(lw.manager.localRootFile, path.resolve(fixture, 'sub/s.tex').replaceAll(path.win32.sep, '/'))
     })
 
     test.run(suiteName, fixtureName, 'build with !TEX root', async () => {

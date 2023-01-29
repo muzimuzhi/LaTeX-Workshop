@@ -66,8 +66,8 @@ suite('Build TeX files test suite', () => {
         ])
         const args = await test.assert.echo({fixture, openFile: 'main.tex'})
         assert.strictEqual(args.length, 4)
-        assert.strictEqual(args[2], path.resolve(fixture, 'main'))
-        assert.strictEqual(args[3], path.resolve(fixture, 'main'))
+        assert.strictEqual(path.relative(args[2], path.resolve(fixture, 'main').replaceAll(path.win32.sep, '/')), '')
+        assert.strictEqual(path.relative(args[3], path.resolve(fixture, 'main').replaceAll(path.win32.sep, '/')), '')
     })
 
     test.run(suiteName, fixtureName, 'auto-detect subfile root and build 1', async () => {
