@@ -199,8 +199,8 @@ async function echo({fixture,
     }
     const args = Array.from(getCachedLog().CACHED_COMPILER[0].matchAll(/"([^"]*?)"/g)).map(match => match[1])
     const cwd = [...getCachedLog().CACHED_EXTLOG.join('\n').matchAll(/cwd:\s(.*)$/gm)].pop()?.[1]
-    strictEqual(args[0], outDir, 'Output directory of compilation mismatched.')
-    strictEqual(args[1], path.resolve(fixture, baseFile.replace(/\.[^/.]+$/, '')), 'File to be compiled mismatched.')
+    strictEqual(path.relative(args[0], outDir.replaceAll(path.win32.sep, '/')), '', 'Output directory of compilation mismatched.')
+    strictEqual(path.relative(args[1], path.resolve(fixture, baseFile.replace(/\.[^/.]+$/, '')).replaceAll(path.win32.sep, '/')), '', 'File to be compiled mismatched.')
     strictEqual(cwd, cwdPath, 'Current working directory mismatched.')
     return args
 }

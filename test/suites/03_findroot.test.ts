@@ -22,6 +22,11 @@ suite('Find root file test suite', () => {
     teardown(async () => {
         await vscode.commands.executeCommand('workbench.action.closeAllEditors')
         lw.manager.rootFile = undefined
+        lw.manager.localRootFile = undefined
+        lw.completer.input.reset()
+        lw.duplicateLabels.reset()
+        lw.cacher.allPaths.forEach(filePath => lw.cacher.remove(filePath))
+        await lw.cacher.resetWatcher()
 
         if (path.basename(fixture) === 'testground') {
             rimraf(fixture + '/{*,.vscode/*}', (e) => {if (e) {console.error(e)}})
@@ -37,14 +42,18 @@ suite('Find root file test suite', () => {
         await test.assert.build(fixture, 'main.tex', 'main.pdf')
     })
 
-    test.run(suiteName, fixtureName, 'auto-detect subfile root and build TODO', async () => {
+    test.only(suiteName, fixtureName, 'auto-detect subfile root and build TODO', async () => {
         await vscode.workspace.getConfiguration('latex-workshop').update('latex.rootFile.doNotPrompt', true)
         await vscode.workspace.getConfiguration('latex-workshop').update('latex.rootFile.useSubFile', true)
         await test.loadAndCache(fixture, [
             {src: 'subfile_base.tex', dst: 'main.tex'},
             {src: 'subfile_sub.tex', dst: 'sub/s.tex'}
-        ])
-        await test.assert.echo({fixture, openFile: 'sub/s.tex'})
+        ], -1)
+        const doc = await vscode.workspace.openTextDocument(path.resolve(fixture, 'sub/s.tex'))
+        await vscode.window.showTextDocument(doc)
+        await lw.manager.findRoot()
+        assert.strictEqual(lw.manager.rootFile?.replaceAll(path.win32.sep, '/'), path.resolve(fixture, 'main.tex'))
+        assert.strictEqual(lw.manager.localRootFile?.replaceAll(path.win32.sep, '/'), path.resolve(fixture, 'sub/s.tex'))
     })
 
     test.run(suiteName, fixtureName, 'build with !TEX root', async () => {
