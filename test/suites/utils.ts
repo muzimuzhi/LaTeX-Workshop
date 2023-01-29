@@ -127,22 +127,21 @@ export async function wait(event: EventName, arg?: any) {
     })
 }
 
-export async function loadAndCache(fixture: string, files: {src: string, dst: string}[], root: number = 0) {
-    files.forEach(file => {
+export async function loadAndCache(fixture: string, files: {src: string, dst: string, localRoot?: boolean}[], root: number = 0) {
+    files.forEach((file, index) => {
         fs.mkdirSync(path.resolve(fixture, path.dirname(file.dst)), {recursive: true})
         fs.copyFileSync(path.resolve(fixture, '../armory', file.src), path.resolve(fixture, file.dst))
+        if (index === root) {
+            lw.manager.rootFile = path.resolve(fixture, file.dst)
+            lw.manager.rootFileLanguageId = 'latex'
+        }
+        if (file.localRoot) {
+            lw.manager.localRootFile = path.resolve(fixture, file.dst)
+        }
     })
-    if (root > -1) {
-        lw.manager.rootFile = path.resolve(fixture, files[root].dst)
-    }
     const texPromise = files.filter(file => file.dst.endsWith('.tex')).map(file => lw.cacher.refreshCache(path.resolve(fixture, file.dst), lw.manager.rootFile))
     const bibPromise = files.filter(file => file.dst.endsWith('.bib')).map(file => lw.completer.citation.parseBibFile(path.resolve(fixture, file.dst)))
     await Promise.all([...texPromise, ...bibPromise])
-}
-
-export async function getSuggestions(fixture: string, files: {src: string, dst: string}[], row: number, col: number, isAtSuggestion = false): Promise<{items: vscode.CompletionItem[], labels: string[]}> {
-    await loadAndCache(fixture, files, 0)
-    return suggest(row, col, isAtSuggestion)
 }
 
 export function suggest(row: number, col: number, isAtSuggestion = false, openFile?: string): {items: vscode.CompletionItem[], labels: string[]} {
@@ -161,9 +160,49 @@ export function suggest(row: number, col: number, isAtSuggestion = false, openFi
 
 export const assert = {
     build: assertBuild,
+    echo,
     auto: assertAutoBuild,
     root: assertRoot,
     viewer: assertViewer
+}
+
+type EchoParams = {
+    fixture: string,
+    openFile: string,
+    outDir?: string,
+    baseFile?: string,
+    cwdPath?: string,
+    action?: () => Promise<void>,
+    noBuild?: boolean
+}
+/**
+ * @param openFile: The file to be opened (emulated) in vscode
+ * @param outDir: The **expected** output directory, default to {@param fixture}
+ * @param baseFile: The **expected** compiled base file, default to {@param openFile}
+ * @param cwdPath: The **expected** current working directory, default to `%WS1%`
+ * @param action: The building action to be executed and awaited, default to BUILD command
+ * @param noBuild: Whether a building process should be expected
+ * @returns The arguments passed to the compiling tool, typically `echo`
+ */
+async function echo({fixture,
+                     openFile,
+                     outDir = fixture,
+                     baseFile = openFile,
+                     cwdPath = '%WS1%',
+                     action = () => lw.commander.build({uri: vscode.Uri.file(path.resolve(fixture, openFile)), langId: 'latex'}),
+                     noBuild = false
+                    }: EchoParams): Promise<string[]> {
+    await action()
+    if (noBuild) {
+        strictEqual(getCachedLog().CACHED_COMPILER.length, 0)
+        return []
+    }
+    const args = Array.from(getCachedLog().CACHED_COMPILER[0].matchAll(/"([^"]*?)"/g)).map(match => match[1])
+    const cwd = [...getCachedLog().CACHED_EXTLOG.join('\n').matchAll(/cwd:\s(.*)$/gm)].pop()?.[1]
+    strictEqual(args[0], outDir, 'Output directory of compilation mismatched.')
+    strictEqual(args[1], path.resolve(fixture, baseFile.replace(/\.[^/.]+$/, '')), 'File to be compiled mismatched.')
+    strictEqual(cwd, cwdPath, 'Current working directory mismatched.')
+    return args
 }
 
 async function assertBuild(fixture: string, texName: string, pdfName: string, build?: () => unknown) {

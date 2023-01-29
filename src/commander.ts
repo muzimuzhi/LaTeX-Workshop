@@ -5,44 +5,49 @@ import { getSurroundingCommandRange } from './utils/utils'
 import { getLogger } from './components/logger'
 import { UtensilsParser } from './components/parser/syntax'
 import { CompilerLogParser } from './components/parser/compilerlog'
+import { QuickPickPrompted } from './components/eventbus'
 
 const logger = getLogger('Commander')
 
-export async function build(skipSelection: boolean = false, rootFile: string | undefined = undefined, languageId: string | undefined = undefined, recipe: string | undefined = undefined) {
-    logger.log('BUILD command invoked.')
-    if (!vscode.window.activeTextEditor) {
-        logger.log('Cannot start to build because the active editor is undefined.')
-        return
+export async function build(
+        {recipe, baseFile, uri, langId, skipSelection=false}:
+        {recipe?: string, baseFile?: string, uri?: vscode.Uri, langId?: string, skipSelection?: boolean} = {}): Promise<void> {
+    if (!uri || !langId) {
+        logger.log('BUILD command invoked.')
+        if (!vscode.window.activeTextEditor) {
+            logger.log('Cannot start to build because the active editor is undefined.')
+            return
+        }
+        logger.log(`The document of the active editor: ${vscode.window.activeTextEditor.document.uri.toString(true)}`)
+        logger.log(`The languageId of the document: ${vscode.window.activeTextEditor.document.languageId}`)
+        return build({recipe, baseFile, skipSelection, uri: vscode.window.activeTextEditor.document.uri, langId: vscode.window.activeTextEditor.document.languageId})
     }
-    logger.log(`The document of the active editor: ${vscode.window.activeTextEditor.document.uri.toString(true)}`)
-    logger.log(`The languageId of the document: ${vscode.window.activeTextEditor.document.languageId}`)
-    const workspace = rootFile ? vscode.Uri.file(rootFile) : vscode.window.activeTextEditor.document.uri
+    const workspace = baseFile ? vscode.Uri.file(baseFile) : uri
     const configuration = vscode.workspace.getConfiguration('latex-workshop', workspace)
     const externalBuildCommand = configuration.get('latex.external.build.command') as string
     const externalBuildArgs = configuration.get('latex.external.build.args') as string[]
-    if (rootFile === undefined && lw.manager.hasTexId(vscode.window.activeTextEditor.document.languageId)) {
-        rootFile = await lw.manager.findRoot()
-        languageId = lw.manager.rootFileLanguageId
+    if (!baseFile && lw.manager.hasTexId(langId)) {
+        baseFile = lw.manager.rootFile
     }
     if (externalBuildCommand) {
-        const pwd = path.dirname(rootFile ? rootFile : vscode.window.activeTextEditor.document.fileName)
-        await lw.builder.buildExternal(externalBuildCommand, externalBuildArgs, pwd, rootFile)
+        const pwd = path.dirname(baseFile ?? uri.fsPath)
+        await lw.builder.buildExternal(externalBuildCommand, externalBuildArgs, pwd, baseFile)
         return
     }
-    if (rootFile === undefined || languageId === undefined) {
+    if (!baseFile || !lw.manager.rootFileLanguageId) {
         logger.log('Cannot find LaTeX root file. See https://github.com/James-Yu/LaTeX-Workshop/wiki/Compile#the-root-file')
         return
     }
-    let pickedRootFile: string | undefined = rootFile
+    let pickedRootFile: string | undefined = baseFile
     if (!skipSelection && lw.manager.localRootFile) {
         // We are using the subfile package
-        pickedRootFile = await quickPickRootFile(rootFile, lw.manager.localRootFile, 'build')
+        pickedRootFile = await quickPickRootFile(baseFile, lw.manager.localRootFile, 'build')
         if (! pickedRootFile) {
             return
         }
     }
     logger.log(`Building root file: ${pickedRootFile}`)
-    await lw.builder.build(pickedRootFile, languageId, recipe)
+    await lw.builder.build(pickedRootFile, lw.manager.rootFileLanguageId, recipe)
 }
 
 export async function revealOutputDir() {
@@ -68,7 +73,7 @@ export function recipes(recipe?: string) {
         return
     }
     if (recipe) {
-        return build(false, undefined, undefined, recipe)
+        return build({recipe})
     }
     return vscode.window.showQuickPick(candidates.map(candidate => candidate.name), {
         placeHolder: 'Please Select a LaTeX Recipe'
@@ -76,7 +81,7 @@ export function recipes(recipe?: string) {
         if (!selected) {
             return
         }
-        return build(false, undefined, undefined, selected)
+        return build({recipe: selected})
     })
 }
 
@@ -482,7 +487,7 @@ async function quickPickRootFile(rootFile: string, localRootFile: string, verb: 
             return rootFile
         }
     }
-    const pickedRootFile = await vscode.window.showQuickPick([{
+    const quickPick = vscode.window.showQuickPick([{
         label: 'Default root file',
         description: `Path: ${rootFile}`
     }, {
@@ -504,5 +509,7 @@ async function quickPickRootFile(rootFile: string, localRootFile: string, verb: 
                 return
         }
     })
+    setTimeout(() => lw.eventBus.fire(QuickPickPrompted), 500)
+    const pickedRootFile = await quickPick
     return pickedRootFile
 }

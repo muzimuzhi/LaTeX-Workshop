@@ -99,9 +99,9 @@ export class Builder {
         }
         const configuration = vscode.workspace.getConfiguration('latex-workshop', vscode.Uri.file(file))
         if (!bibChanged && lw.manager.localRootFile && configuration.get('latex.rootFile.useSubFile')) {
-            return lw.commander.build(true, lw.manager.localRootFile, lw.manager.rootFileLanguageId)
+            return lw.commander.build({baseFile: lw.manager.localRootFile, skipSelection: true})
         } else {
-            return lw.commander.build(true, lw.manager.rootFile, lw.manager.rootFileLanguageId)
+            return lw.commander.build({baseFile: lw.manager.rootFile, skipSelection: true})
         }
     }
 
@@ -268,7 +268,8 @@ export class Builder {
             }
         } else if (!step.isExternal) {
             let cwd = path.dirname(step.rootFile)
-            if (step.command === 'latexmk' && step.rootFile === lw.manager.localRootFile && lw.manager.rootDir) {
+            // We use `echo` to emulate `latexmk` in tests
+            if (['latexmk', 'echo'].includes(step.command) && step.rootFile === lw.manager.localRootFile && lw.manager.rootDir) {
                 cwd = lw.manager.rootDir
             }
             logger.log(`cwd: ${cwd}`)

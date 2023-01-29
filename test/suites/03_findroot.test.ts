@@ -29,6 +29,32 @@ suite('Find root file test suite', () => {
         }
     })
 
+    test.run(suiteName, fixtureName, 'build with subfile root detection TODO', async () => {
+        await test.load(fixture, [
+            {src: 'subfile_base.tex', dst: 'main.tex'},
+            {src: 'subfile_sub.tex', dst: 'sub/s.tex'}
+        ])
+        await test.assert.build(fixture, 'main.tex', 'main.pdf')
+    })
+
+    test.run(suiteName, fixtureName, 'auto-detect subfile root and build TODO', async () => {
+        await vscode.workspace.getConfiguration('latex-workshop').update('latex.rootFile.doNotPrompt', true)
+        await vscode.workspace.getConfiguration('latex-workshop').update('latex.rootFile.useSubFile', true)
+        await test.loadAndCache(fixture, [
+            {src: 'subfile_base.tex', dst: 'main.tex'},
+            {src: 'subfile_sub.tex', dst: 'sub/s.tex'}
+        ])
+        await test.assert.echo({fixture, openFile: 'sub/s.tex'})
+    })
+
+    test.run(suiteName, fixtureName, 'build with !TEX root', async () => {
+        await test.load(fixture, [
+            {src: 'input_base.tex', dst: 'main.tex'},
+            {src: 'input_base.tex', dst: 'alt.tex'},
+            {src: 'magic_root.tex', dst: 'sub/s.tex'}
+        ])
+        await test.assert.build(fixture, 'sub/s.tex', 'main.pdf')
+    })
 
     test.run(suiteName, fixtureName, 'detect root with search.rootFiles.include', async () => {
         await vscode.workspace.getConfiguration('latex-workshop').update('latex.rootFile.doNotPrompt', true)

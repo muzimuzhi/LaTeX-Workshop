@@ -1,8 +1,12 @@
 import {EventEmitter} from 'events'
 import type {PdfViewerState} from '../../types/latex-workshop-protocol-types/index'
 import type {Disposable} from 'vscode'
+import { getLogger } from './logger'
+
+const logger = getLogger('Event')
 
 export const BuildDone = 'BUILD_DONE'
+export const QuickPickPrompted = 'QUICK_PICK_PROMPTED'
 export const RootFileChanged = 'ROOT_FILE_CHANGED'
 export const RootFileSearched = 'ROOT_FILE_SEARCHED'
 export const FileParsed = 'FILE_PARSED'
@@ -23,6 +27,7 @@ type EventArgTypeMap = {
 }
 
 export type EventName = typeof BuildDone
+                    | typeof QuickPickPrompted
                     | typeof RootFileChanged
                     | typeof RootFileSearched
                     | typeof ViewerPageLoaded
@@ -43,6 +48,9 @@ export class EventBus {
     fire<T extends keyof EventArgTypeMap>(eventName: T, arg: EventArgTypeMap[T]): void
     fire(eventName: EventName): void
     fire(eventName: EventName, arg?: any): void {
+        if (process.env['LATEXWORKSHOP_CI']) {
+            logger.log(`Emitted ${eventName}.`)
+        }
         this.eventEmitter.emit(eventName, arg)
     }
 
