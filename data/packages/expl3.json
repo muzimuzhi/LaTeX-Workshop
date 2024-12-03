@@ -140,6 +140,12 @@
       "name": "bitset_to_bin:c"
     },
     {
+      "name": "bitset_use:N"
+    },
+    {
+      "name": "bitset_use:c"
+    },
+    {
       "name": "bool_case:n"
     },
     {
@@ -873,9 +879,6 @@
     },
     {
       "name": "c_catcode_active_space_tl"
-    },
-    {
-      "name": "c_catcode_active_tl"
     },
     {
       "name": "c_catcode_letter_token"
@@ -2024,10 +2027,16 @@
       "name": "clist_sort:cn"
     },
     {
+      "name": "clist_use:N"
+    },
+    {
       "name": "clist_use:Nn"
     },
     {
       "name": "clist_use:Nnnn"
+    },
+    {
+      "name": "clist_use:c"
     },
     {
       "name": "clist_use:cn"
@@ -10455,6 +10464,18 @@
     },
     {
       "name": "sys_if_engine_luatex_p:"
+    },
+    {
+      "name": "sys_if_engine_opentype:F"
+    },
+    {
+      "name": "sys_if_engine_opentype:T"
+    },
+    {
+      "name": "sys_if_engine_opentype:TF"
+    },
+    {
+      "name": "sys_if_engine_opentype_p:"
     },
     {
       "name": "sys_if_engine_pdftex:F"

@@ -559,11 +559,15 @@ switch (process.argv[2]) {
     case 'essential':
         parseEssential()
         break
+    case 'expl3':
+        parseExpl3()
+        parseLatex2eExpl3()
+        break
     default:
         if (process.argv[2].endsWith('.cwl')) {
             parseFiles([process.argv[2]], 'packages')
         } else {
-            console.warn('ts-node parse-cwl.ts both|all|ess|essential|*.cwl')
+            console.warn('ts-node parse-cwl.ts both|all|ess|essential|expl3|*.cwl')
         }
         break
 }
