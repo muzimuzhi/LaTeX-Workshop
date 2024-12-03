@@ -493,40 +493,30 @@ function parseFiles(files: string[], folder: string) {
 }
 
 /**
- * Parses the expl3.cwl file and generates a JSON representation of the package.
+ * Parses a expl3 cwl file and generates a JSON representation of the package.
+ * 
+ * @param name - The name of the package to parse.
+ * @returns void
  *
  * @remarks
- * This function reads the content of the 'expl3.cwl' file, parses it line by
- * line, and generates a JSON object representing the package. The generated
- * package object includes dependencies, macros, environments, keys, and
- * arguments. Additionally, it adds a macro named 'ExplSyntaxOn' to the
- * package's macros array.
- *
- * @returns void
+ * This function reads the content of the '{@link name}.cwl' file, parses it
+ * line by line, and generates a JSON object representing the package. The
+ * generated package object includes dependencies, macros, environments, keys,
+ * and arguments. Additionally, for the 'expl3.cwl' file, it adds a macro named
+ * 'ExplSyntaxOn' to the package's macros array.
  */
-function parseExpl3() {
-    const content = fs.readFileSync('expl3.cwl').toString()
+function parseExpl3(name: string) {
+    const content = fs.readFileSync(`${name}.cwl`).toString()
     const pkg: PackageRaw = { deps: [], macros: [], envs: [], keys: {}, args: [] }
     parseLines(pkg, content.split('\n'))
-    pkg.macros.push({
+    if (name === "expl3") {
+      pkg.macros.push({
         name: 'ExplSyntaxOn',
         arg: { format: '', snippet: 'ExplSyntaxOn\n\t$0\n\\ExplSyntaxOff' },
         doc: 'Insert an \\ExplSyntax block',
-    })
-    fs.writeFileSync('../data/packages/expl3.json', JSON.stringify(pkg, null, 2))
-}
-
-/**
- * Parses the latex2e-expl3.cwl file and generates a JSON representation of the
- * package.
- *
- * @returns void
- */
-function parseLatex2eExpl3() {
-  const content = fs.readFileSync('latex2e-expl3.cwl').toString()
-  const pkg: PackageRaw = { deps: [], macros: [], envs: [], keys: {}, args: [] }
-  parseLines(pkg, content.split('\n'))
-  fs.writeFileSync('../data/packages/latex2e-expl3.json', JSON.stringify(pkg, null, 2))
+      })
+    }
+    fs.writeFileSync(`../data/packages/${name}.json`, JSON.stringify(pkg, null, 2))
 }
 
 /**
@@ -535,8 +525,8 @@ function parseLatex2eExpl3() {
 function parseEssential() {
     const files = fs.readFileSync('cwl.list').toString().split('\n')
     parseFiles(files, '../data/packages')
-    parseExpl3()
-    parseLatex2eExpl3()
+    parseExpl3('expl3')
+    parseExpl3('latex2e-expl3')
 }
 
 /**
@@ -560,8 +550,8 @@ switch (process.argv[2]) {
         parseEssential()
         break
     case 'expl3':
-        parseExpl3()
-        parseLatex2eExpl3()
+        parseExpl3('expl3')
+        parseExpl3('latex2e-expl3')
         break
     default:
         if (process.argv[2].endsWith('.cwl')) {
