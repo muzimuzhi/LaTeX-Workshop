@@ -93,7 +93,7 @@ def parse_file(fpath, _type):
                 continue
             if not inside_documentation:
                 # needed by (some of the) latex2e dtx files
-                if re.search(r"\\MaybeStop", line):
+                if re.search(r'\\MaybeStop', line):
                     content = ''.join(lines[:i])
                     objs.extend(parse_doc_block(content, _type))
                     break
@@ -124,7 +124,7 @@ def parse_all_files(dtx: dict):
 
 if __name__ == "__main__":
     # parse l3kernel dtx files then write entries to expl3.cwl file
-    print("Generating expl3.cwl...")
+    print('Generating expl3.cwl...')
     entries_dict = parse_all_files(LATEX3_DTX)
     entries_array = sorted(set(itertools.chain.from_iterable(entries_dict.values())))
 
@@ -132,8 +132,8 @@ if __name__ == "__main__":
         fp.writelines([e + '\n' for e in entries_array])
 
     # parse latex2e dtx files then write entries to latex2e-expl3.cwl file
-    print("")
-    print("Generating latex2e-expl3.cwl...")
+    print('')
+    print('Generating latex2e-expl3.cwl...')
     entries_dict = parse_all_files(LATEX2E_DTX)
     entries_array = sorted(set(itertools.chain.from_iterable(entries_dict.values())))
 
