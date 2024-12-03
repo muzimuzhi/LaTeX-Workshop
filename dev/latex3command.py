@@ -1,20 +1,30 @@
 """
 This script generates expl3.cwl and latex2e-expl3.cwl files consisting of
 LaTeX 3 function and variable entries. These cwl files are then converted to
-JSON by
+intellisense data (in JSON) by
     ts-node parse-cwl.ts both|ess|essential|expl3
 """
+from dataclasses import dataclass
 from pathlib import Path
 import os
 import re
 import itertools
 
-LATEX3_DTX = {
-    'PATH_TO_DTX': os.environ.get(
+
+@dataclass
+class Dtx:
+    name: str
+    path_to_dtx: str
+    ignored_dtx: list[str]
+    whitelist_entries: list[str]
+
+LATEX3_DTX = Dtx(
+    name = 'expl3',
+    path_to_dtx = os.environ.get(
         "PATH_TO_LATEX3_DTX",
         default='/opt/texlive/2024/texmf-dist/source/latex/l3kernel/'),
-    'IGNORED_DTX': ['l3doc.dtx'],
-    'WHITELIST_ENTRIES': [
+    ignored_dtx = ['l3doc.dtx'],
+    whitelist_entries = [
         '\\ExplLoaderFileDate',
         '\\ExplSyntaxOff',
         '\\ExplSyntaxOn',
@@ -22,16 +32,17 @@ LATEX3_DTX = {
         '\\ProvidesExplClass',
         '\\ProvidesExplFile',
         '\\ProvidesExplPackage'
-    ],
-}
+    ]
+)
 
-LATEX2E_DTX = {
-    'PATH_TO_DTX': os.environ.get(
+LATEX2E_DTX = Dtx(
+    name = 'latex2e-expl3',
+    path_to_dtx = os.environ.get(
             "PATH_TO_LATEX2E_DTX",
             default='/opt/texlive/2024/texmf-dist/source/latex/base/'),
-    'IGNORED_DTX': ['doc.dtx'],
-    'WHITELIST_ENTRIES': [],
-}
+    ignored_dtx = ['doc.dtx'],
+    whitelist_entries = []
+)
 
 def resolve_dtx_files(dtx_path):
     dtx_path_resolved = Path(dtx_path).resolve()
@@ -108,34 +119,30 @@ def parse_file(fpath, _type):
     return objs
 
 
-def parse_all_files(dtx: dict):
+def parse_all_files(dtx: Dtx):
     entries = {}
-    dtx_files = resolve_dtx_files(dtx['PATH_TO_DTX'])
+    dtx_files = resolve_dtx_files(dtx.path_to_dtx)
     for f in dtx_files:
         print(f)
-        if any(f.match(i) for i in dtx['IGNORED_DTX']):
+        if any(f.match(i) for i in dtx.ignored_dtx):
             continue
         ans = parse_file(f.as_posix(), 'function')
         ans.extend(parse_file(f.as_posix(), 'variable'))
         if len(ans) > 0:
             entries[f.name] = list(set(ans))
-    entries['whitelist'] = dtx['WHITELIST_ENTRIES']
+    entries['whitelist'] = dtx.whitelist_entries
     return entries
 
+def generate_cwl(dtx: Dtx):
+    "parse a set of dtx files then write entries to cwl file"
+    print(f'Generating {dtx.name}.cwl...')
+    entries_dict = parse_all_files(dtx)
+    entries_array = sorted(set(itertools.chain.from_iterable(entries_dict.values())))
+
+    with open(f'{dtx.name}.cwl', encoding='utf8', mode='w') as fp:
+        fp.writelines([e + '\n' for e in entries_array])
+    print()
+
 if __name__ == "__main__":
-    # parse l3kernel dtx files then write entries to expl3.cwl file
-    print('Generating expl3.cwl...')
-    entries_dict = parse_all_files(LATEX3_DTX)
-    entries_array = sorted(set(itertools.chain.from_iterable(entries_dict.values())))
-
-    with open('expl3.cwl', encoding='utf8', mode='w') as fp:
-        fp.writelines([e + '\n' for e in entries_array])
-
-    # parse latex2e dtx files then write entries to latex2e-expl3.cwl file
-    print('')
-    print('Generating latex2e-expl3.cwl...')
-    entries_dict = parse_all_files(LATEX2E_DTX)
-    entries_array = sorted(set(itertools.chain.from_iterable(entries_dict.values())))
-
-    with open('latex2e-expl3.cwl', encoding='utf8', mode='w') as fp:
-        fp.writelines([e + '\n' for e in entries_array])
+    generate_cwl(LATEX3_DTX)
+    generate_cwl(LATEX2E_DTX)
