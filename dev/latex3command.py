@@ -1,32 +1,50 @@
 """
-This script generates intellisense data for LaTeX 3
-    ../data/expl3.json
+This script generates expl3.cwl and latex2e-expl3.cwl files consisting of
+LaTeX 3 function and variable entries. These cwl files are then converted to
+JSON by
+    ts-node parse-cwl.ts both|ess|essential|expl3
 """
 from pathlib import Path
 import os
 import re
-import json
 import itertools
-import dataclasses
-from pyintel import CwlIntel
 
-CWD = Path(__file__).expanduser().resolve().parent
-UNIMATHSYMBOLS = CWD.joinpath('unimathsymbols.txt').resolve()
-COMMANDS_FILE = CWD.joinpath('../data/commands.json').resolve()
-ENVS_FILE = CWD.joinpath('../data/environments.json').resolve()
-OUT_DIR = CWD.joinpath('../data/packages').resolve()
+LATEX3_DTX = {
+    'PATH_TO_DTX': os.environ.get(
+        "PATH_TO_LATEX3_DTX",
+        default='/opt/texlive/2024/texmf-dist/source/latex/l3kernel/'),
+    'IGNORED_DTX': ['l3doc.dtx'],
+    'WHITELIST_ENTRIES': [
+        '\\ExplLoaderFileDate',
+        '\\ExplSyntaxOff',
+        '\\ExplSyntaxOn',
+        '\\GetIdInfo',
+        '\\ProvidesExplClass',
+        '\\ProvidesExplFile',
+        '\\ProvidesExplPackage'
+    ],
+}
 
-PATH_TO_DTX = os.environ.get(
-    "PATH_TO_DTX",
-    default='/opt/texlive/2024/texmf-dist/source/latex/l3kernel/')
-dtx_path = Path(PATH_TO_DTX).resolve()
-if not dtx_path.exists():
-    raise FileNotFoundError(f'Directory {dtx_path} does not exist. Do you have PATH_TO_DTX set?')
-dtx_files = dtx_path.glob('*.dtx')
-dtx_files_to_ignore = ['l3doc.dtx']
+LATEX2E_DTX = {
+    'PATH_TO_DTX': os.environ.get(
+            "PATH_TO_LATEX2E_DTX",
+            default='/opt/texlive/2024/texmf-dist/source/latex/base/'),
+    'IGNORED_DTX': ['doc.dtx'],
+    'WHITELIST_ENTRIES': [],
+}
+
+def resolve_dtx_files(dtx_path):
+    dtx_path_resolved = Path(dtx_path).resolve()
+    if not dtx_path_resolved.exists():
+        raise FileNotFoundError(f'Directory {dtx_path} does not exist.')
+    return dtx_path_resolved.glob('*.dtx')
 
 def exclude(entry: str) -> bool:
-    return not re.match(r'\\(?!(?:::)|(?:__))', entry)
+    # excluded patterns:
+    # - begins with \:: or \__ or \@@ or \[cgl]_@@
+    # - contains no _ nor :
+    return not re.match(r'\\(?!(?:::)|(?:__)|(?:[cgl]_)?\@\@)', entry) \
+        or not re.search(r'[_:]', entry)
 
 def expand_variants(entry: str, options):
     if options is None:
@@ -74,42 +92,50 @@ def parse_file(fpath, _type):
                 block_start = i
                 continue
             if not inside_documentation:
+                # needed by (some of the) latex2e dtx files
+                if re.search(r"\\MaybeStop", line):
+                    content = ''.join(lines[:i])
+                    objs.extend(parse_doc_block(content, _type))
+                    break
                 continue
             if inside_documentation and re.search(r'\\end{documentation}', line):
                 inside_documentation = False
                 block_end = i
                 content = ''.join(lines[block_start:block_end])
                 objs.extend(parse_doc_block(content, _type))
+                break
+
     return objs
 
 
-def parse_all_files():
+def parse_all_files(dtx: dict):
     entries = {}
+    dtx_files = resolve_dtx_files(dtx['PATH_TO_DTX'])
     for f in dtx_files:
         print(f)
-        if any(f.match(i) for i in dtx_files_to_ignore):
+        if any(f.match(i) for i in dtx['IGNORED_DTX']):
             continue
         ans = parse_file(f.as_posix(), 'function')
         ans.extend(parse_file(f.as_posix(), 'variable'))
         if len(ans) > 0:
             entries[f.name] = list(set(ans))
+    entries['whitelist'] = dtx['WHITELIST_ENTRIES']
     return entries
 
 if __name__ == "__main__":
-    entries_dict = parse_all_files()
+    # parse l3kernel dtx files then write entries to expl3.cwl file
+    print("Generating expl3.cwl...")
+    entries_dict = parse_all_files(LATEX3_DTX)
     entries_array = sorted(set(itertools.chain.from_iterable(entries_dict.values())))
 
-    # Write a .cwl file
     with open('expl3.cwl', encoding='utf8', mode='w') as fp:
         fp.writelines([e + '\n' for e in entries_array])
-    # cwlIntel = CwlIntel(COMMANDS_FILE, ENVS_FILE, UNIMATHSYMBOLS)
-    # expl3 = cwlIntel.parse_cwl_file('expl3.cwl')
-    # expl3.macros['ExplSyntaxBlock'] = {
-    #     'command': 'ExplSyntaxBlock',
-    #     'option': '',
-    #     'detail': '',
-    #     'snippet': 'ExplSyntaxOn\n\t$0\n\\ExplSyntaxOff',
-    #     'documentation': 'Insert a \\ExplSyntax block'
-    # }
-    # with open(OUT_DIR.joinpath('expl3.json'), 'w', encoding='utf8') as fp:
-    #     json.dump(dataclasses.asdict(expl3, dict_factory=lambda x: {k: v for (k, v) in x if v is not None}), fp, indent=2, ensure_ascii=False)
+
+    # parse latex2e dtx files then write entries to latex2e-expl3.cwl file
+    print("")
+    print("Generating latex2e-expl3.cwl...")
+    entries_dict = parse_all_files(LATEX2E_DTX)
+    entries_array = sorted(set(itertools.chain.from_iterable(entries_dict.values())))
+
+    with open('latex2e-expl3.cwl', encoding='utf8', mode='w') as fp:
+        fp.writelines([e + '\n' for e in entries_array])

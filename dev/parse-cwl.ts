@@ -483,7 +483,7 @@ function handleKomaClasses(pkgName: string, content: string): string {
 function parseFiles(files: string[], folder: string) {
     for (const file of files) {
         console.log(file)
-        if (!file.endsWith('.cwl') || file === 'expl3.cwl') {
+        if (!file.endsWith('.cwl') || file === 'expl3.cwl' || file === 'latex2e-expl3.cwl') {
             continue
         }
         const pkgName = file.replace('.cwl', '')
@@ -517,12 +517,26 @@ function parseExpl3() {
 }
 
 /**
+ * Parses the latex2e-expl3.cwl file and generates a JSON representation of the
+ * package.
+ *
+ * @returns void
+ */
+function parseLatex2eExpl3() {
+  const content = fs.readFileSync('latex2e-expl3.cwl').toString()
+  const pkg: PackageRaw = { deps: [], macros: [], envs: [], keys: {}, args: [] }
+  parseLines(pkg, content.split('\n'))
+  fs.writeFileSync('../data/packages/latex2e-expl3.json', JSON.stringify(pkg, null, 2))
+}
+
+/**
  * Parses the essential package files.
  */
 function parseEssential() {
     const files = fs.readFileSync('cwl.list').toString().split('\n')
     parseFiles(files, '../data/packages')
     parseExpl3()
+    parseLatex2eExpl3()
 }
 
 /**

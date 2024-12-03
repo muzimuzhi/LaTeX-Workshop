@@ -1,0 +1,341 @@
+{
+  "deps": [],
+  "macros": [
+    {
+      "name": "g_para_indent_box"
+    },
+    {
+      "name": "g_shipout_readonly_int"
+    },
+    {
+      "name": "g_shipout_totalpages_int"
+    },
+    {
+      "name": "hook_activate_generic:n"
+    },
+    {
+      "name": "hook_debug_off:"
+    },
+    {
+      "name": "hook_debug_on:"
+    },
+    {
+      "name": "hook_disable_generic:n"
+    },
+    {
+      "name": "hook_gclear_next_code:n"
+    },
+    {
+      "name": "hook_gput_code:nnn"
+    },
+    {
+      "name": "hook_gput_code_with_args:nnn"
+    },
+    {
+      "name": "hook_gput_next_code:nn"
+    },
+    {
+      "name": "hook_gput_next_code_with_args:nn"
+    },
+    {
+      "name": "hook_gremove_code:nn"
+    },
+    {
+      "name": "hook_gset_rule:nnnn"
+    },
+    {
+      "name": "hook_if_empty:nF"
+    },
+    {
+      "name": "hook_if_empty:nT"
+    },
+    {
+      "name": "hook_if_empty:nTF"
+    },
+    {
+      "name": "hook_if_empty_p:n"
+    },
+    {
+      "name": "hook_log:n"
+    },
+    {
+      "name": "hook_new:n"
+    },
+    {
+      "name": "hook_new_pair:nn"
+    },
+    {
+      "name": "hook_new_pair_with_args:nnn"
+    },
+    {
+      "name": "hook_new_reversed:n"
+    },
+    {
+      "name": "hook_new_reversed_with_args:nn"
+    },
+    {
+      "name": "hook_new_with_args:nn"
+    },
+    {
+      "name": "hook_show:n"
+    },
+    {
+      "name": "hook_use:n"
+    },
+    {
+      "name": "hook_use:nnw"
+    },
+    {
+      "name": "hook_use_once:n"
+    },
+    {
+      "name": "hook_use_once:nnw"
+    },
+    {
+      "name": "l_shipout_box"
+    },
+    {
+      "name": "l_shipout_box_dp_dim"
+    },
+    {
+      "name": "l_shipout_box_ht_dim"
+    },
+    {
+      "name": "l_shipout_box_ht_plus_dp_dim"
+    },
+    {
+      "name": "l_shipout_box_wd_dim"
+    },
+    {
+      "name": "mark_clear_structure:n"
+    },
+    {
+      "name": "mark_copy_structure:nn"
+    },
+    {
+      "name": "mark_debug_off:"
+    },
+    {
+      "name": "mark_debug_on:"
+    },
+    {
+      "name": "mark_get_marks_for_reinsertion:nNN"
+    },
+    {
+      "name": "mark_if_eq:nnnnTF"
+    },
+    {
+      "name": "mark_if_eq:nnnnnnTF"
+    },
+    {
+      "name": "mark_insert:nn"
+    },
+    {
+      "name": "mark_new_class:n"
+    },
+    {
+      "name": "mark_set_structure_to_err:n"
+    },
+    {
+      "name": "mark_update_structure_from_material:nn"
+    },
+    {
+      "name": "mark_use_first:nn"
+    },
+    {
+      "name": "mark_use_last:nn"
+    },
+    {
+      "name": "mark_use_top:nn"
+    },
+    {
+      "name": "para_end:"
+    },
+    {
+      "name": "para_omit_indent:"
+    },
+    {
+      "name": "para_raw_end:"
+    },
+    {
+      "name": "para_raw_indent:"
+    },
+    {
+      "name": "para_raw_noindent:"
+    },
+    {
+      "name": "property_gset:nnnn"
+    },
+    {
+      "name": "property_if_exist:eF"
+    },
+    {
+      "name": "property_if_exist:eT"
+    },
+    {
+      "name": "property_if_exist:eTF"
+    },
+    {
+      "name": "property_if_exist:nF"
+    },
+    {
+      "name": "property_if_exist:nT"
+    },
+    {
+      "name": "property_if_exist:nTF"
+    },
+    {
+      "name": "property_if_exist_p:e"
+    },
+    {
+      "name": "property_if_exist_p:n"
+    },
+    {
+      "name": "property_if_recorded:eF"
+    },
+    {
+      "name": "property_if_recorded:eT"
+    },
+    {
+      "name": "property_if_recorded:eTF"
+    },
+    {
+      "name": "property_if_recorded:eeF"
+    },
+    {
+      "name": "property_if_recorded:eeT"
+    },
+    {
+      "name": "property_if_recorded:eeTF"
+    },
+    {
+      "name": "property_if_recorded:nF"
+    },
+    {
+      "name": "property_if_recorded:nT"
+    },
+    {
+      "name": "property_if_recorded:nTF"
+    },
+    {
+      "name": "property_if_recorded:nnF"
+    },
+    {
+      "name": "property_if_recorded:nnT"
+    },
+    {
+      "name": "property_if_recorded:nnTF"
+    },
+    {
+      "name": "property_if_recorded_p:e"
+    },
+    {
+      "name": "property_if_recorded_p:ee"
+    },
+    {
+      "name": "property_if_recorded_p:n"
+    },
+    {
+      "name": "property_if_recorded_p:nn"
+    },
+    {
+      "name": "property_new:nnnn"
+    },
+    {
+      "name": "property_record:ee"
+    },
+    {
+      "name": "property_record:nN"
+    },
+    {
+      "name": "property_record:nV"
+    },
+    {
+      "name": "property_record:nn"
+    },
+    {
+      "name": "property_ref:ee"
+    },
+    {
+      "name": "property_ref:een"
+    },
+    {
+      "name": "property_ref:nn"
+    },
+    {
+      "name": "property_ref:nnn"
+    },
+    {
+      "name": "property_ref_undefined_warn:"
+    },
+    {
+      "name": "property_ref_undefined_warn:e"
+    },
+    {
+      "name": "property_ref_undefined_warn:ee"
+    },
+    {
+      "name": "property_ref_undefined_warn:n"
+    },
+    {
+      "name": "property_ref_undefined_warn:nn"
+    },
+    {
+      "name": "shipout_debug_off:"
+    },
+    {
+      "name": "shipout_debug_on:"
+    },
+    {
+      "name": "shipout_discard:"
+    },
+    {
+      "name": "socket_assign_plug:nn"
+    },
+    {
+      "name": "socket_debug_off:"
+    },
+    {
+      "name": "socket_debug_on:"
+    },
+    {
+      "name": "socket_log:n"
+    },
+    {
+      "name": "socket_new:nn"
+    },
+    {
+      "name": "socket_new_plug:nnn"
+    },
+    {
+      "name": "socket_set_plug:nnn"
+    },
+    {
+      "name": "socket_show:n"
+    },
+    {
+      "name": "socket_use:n"
+    },
+    {
+      "name": "socket_use:nn"
+    },
+    {
+      "name": "socket_use:nnn"
+    },
+    {
+      "name": "socket_use:nnnn"
+    },
+    {
+      "name": "socket_use:nw"
+    },
+    {
+      "name": "socket_use_expandable:n"
+    },
+    {
+      "name": "socket_use_expandable:nw"
+    }
+  ],
+  "envs": [],
+  "keys": {},
+  "args": []
+}
