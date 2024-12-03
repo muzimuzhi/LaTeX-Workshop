@@ -494,7 +494,7 @@ function parseFiles(files: string[], folder: string) {
 
 /**
  * Parses a expl3 cwl file and generates a JSON representation of the package.
- * 
+ *
  * @param name - The name of the package to parse.
  * @returns void
  *
@@ -509,7 +509,7 @@ function parseExpl3(name: string) {
     const content = fs.readFileSync(`${name}.cwl`).toString()
     const pkg: PackageRaw = { deps: [], macros: [], envs: [], keys: {}, args: [] }
     parseLines(pkg, content.split('\n'))
-    if (name === "expl3") {
+    if (name === 'expl3') {
       pkg.macros.push({
         name: 'ExplSyntaxOn',
         arg: { format: '', snippet: 'ExplSyntaxOn\n\t$0\n\\ExplSyntaxOff' },
