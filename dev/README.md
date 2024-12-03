@@ -129,7 +129,9 @@ Completion files for classes are all prefixed by `class-`.
 
 ### latex3command.py
 
-This script generates `expl3.cwl` for LaTeX-3 from all `.dtx` files defined in `/opt/texlive/2024/texmf-dist/source/latex/l3kernel/`, which can be overwritten by setting environment variable `PATH_TO_DTX`.
+This script generates
+- `expl3.cwl` for LaTeX-3 from all `.dtx` files defined in `/opt/texlive/2024/texmf-dist/source/latex/l3kernel/`. Setting environment variant `PATH_TO_LATEX3_DTX` overwrites the path.
+- `latex2e-expl3.cwl` for L3 programming layer (expl3) interfaces in LaTeX2e, from all `.dtx` files defined in `/opt/texlive/2024/texmf-dist/source/latex/base/`. Setting environment variant `PATH_TO_LATEX2E_DTX` overwrites the path.
 
 ## Grammar files
 
